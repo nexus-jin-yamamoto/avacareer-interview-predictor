@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>予測する｜面接質問予測AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Outfit:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f2f9fe;--cyan:#0aa3d8;--deep:#075e80;--ink:#0e2a38;--mut:#5a7a8c;--mint:#19c39c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+  header{display:flex;justify-content:space-between;align-items:center;padding:20px 32px;max-width:900px;margin:0 auto}
+  .logo{font-weight:900;color:var(--deep)}
+  .logo a{text-decoration:none;color:inherit}
+  .logo i{font-style:normal;color:var(--cyan)}
+  header .reg{background:var(--cyan);color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 20px;border-radius:99px}
+  main{max-width:680px;margin:0 auto;padding:40px 24px 90px}
+  h1{font-size:25px;font-weight:900;color:var(--deep);text-align:center}
+  .sub{text-align:center;color:var(--mut);font-size:13.5px;margin:10px 0 28px;line-height:2}
+  .box{background:#fff;border-radius:18px;padding:26px;box-shadow:0 20px 50px rgba(7,94,128,.12);border:1px solid #dbeefa}
+  .urlrow{display:flex;gap:10px}
+  .urlrow input{flex:1;border:1.5px solid #cfe7f5;border-radius:12px;padding:15px 18px;font-size:14px;font-family:inherit;background:#fbfeff}
+  .urlrow input:focus{outline:2px solid var(--cyan)}
+  .urlrow button{background:var(--cyan);color:#fff;border:none;border-radius:12px;font-weight:900;font-size:15px;padding:15px 24px;cursor:pointer;font-family:inherit;box-shadow:0 10px 24px rgba(10,163,216,.35)}
+  #loading{display:none;text-align:center;padding:56px 0;color:var(--mut);font-weight:700}
+  .spin{width:44px;height:44px;border:4px solid #cfe7f5;border-top-color:var(--cyan);border-radius:50%;margin:0 auto 18px;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #result{display:none;margin-top:8px}
+  .pv-head{display:flex;justify-content:space-between;align-items:baseline;margin:26px 0 16px}
+  .pv-head h2{font-size:16.5px;font-weight:900;color:var(--deep)}
+  .cards{display:grid;gap:12px}
+  .qc{background:#fff;border:1px solid #ddeefa;border-left:5px solid var(--cyan);border-radius:14px;padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;box-shadow:0 8px 22px rgba(7,94,128,.06)}
+  .qc .q{font-size:14.5px;font-weight:700;line-height:1.8}
+  .qc .q em{display:block;font-style:normal;font-weight:500;font-size:12px;color:var(--mut);margin-top:5px}
+  .prob{text-align:center}
+  .prob b{display:block;font-family:'Outfit';font-size:19px;color:var(--mint)}
+  .prob span{font-size:10px;color:#95b3c2;font-weight:700}
+  .qc.lock{position:relative;overflow:hidden}
+  .qc.lock .q,.qc.lock .prob{filter:blur(6px)}
+  .qc.lock::after{content:"🔒 続きは無料登録で表示";position:absolute;inset:0;display:grid;place-items:center;font-weight:900;color:var(--deep);background:rgba(255,255,255,.55);font-size:13.5px}
+  .cta{margin-top:26px;background:linear-gradient(135deg,var(--cyan),#26c6f0);border-radius:20px;padding:34px 28px;color:#fff;text-align:center;box-shadow:0 20px 46px rgba(10,163,216,.3)}
+  .cta h2{font-size:19px;font-weight:900;line-height:1.7}
+  .cta p{font-size:13.5px;line-height:2;opacity:.93;margin:10px 0 20px}
+  .cta a{display:inline-block;background:#fff;color:var(--deep);text-decoration:none;font-weight:900;font-size:15px;padding:15px 36px;border-radius:99px}
+  .again{display:block;text-align:center;margin-top:18px;color:var(--mut);font-size:12px;cursor:pointer;text-decoration:underline}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">AVA<i>CAREER</i></a> <span style="font-weight:500;color:#5a7a8c;font-size:13px">面接質問予測AI</span></div>
+  <a class="reg" href="/register/">無料登録</a>
+</header>
+<main>
+  <h1>面接で聞かれる質問を予測</h1>
+  <p class="sub">受ける予定の求人票URLを貼ると、AIが募集背景を読み取り<br>本番で出やすい質問を確率つきで予測します。</p>
+
+  <div class="box" id="form">
+    <div class="urlrow">
+      <input type="url" id="url" placeholder="https:// 求人ページのURL">
+      <button onclick="predict()">予測する</button>
+    </div>
+  </div>
+
+  <div id="loading"><div class="spin"></div>求人票を読み込んで質問を予測中…</div>
+
+  <div id="result">
+    <div class="pv-head"><h2 id="rt">予測結果</h2></div>
+    <div class="cards" id="cards"></div>
+    <div class="cta">
+      <h2>全15問＋模範回答例は、無料登録でぜんぶ見れます。</h2>
+      <p>AIアバターとの模擬面接で、予測質問をそのまま練習することもできます。</p>
+      <a href="/register/">無料登録して全質問と回答例を見る</a>
+    </div>
+    <span class="again" onclick="location.reload()">別の求人で予測する</span>
+  </div>
+</main>
+<script>
+const QPOOL=[
+ ["前職で数値目標をどのように達成しましたか？","成果の再現性を確認する定番。プロセスを構造化して話せる準備を。"],
+ ["少人数のチームで働いた経験はありますか？","自走力・当事者意識を測る質問。役割と貢献を具体的に。"],
+ ["当社のサービスの改善点を挙げるとしたら？","プロダクト理解と提案力の確認。事前に実際に触っておくのが吉。"],
+ ["転職理由を教えてください。","前職の不満ではなく『実現したいこと』軸で語るのが鉄則。"],
+ ["キャリアの5年後のイメージは？","募集ポジションの成長パスとの一致度を見ています。"],
+ ["困難な状況をどう乗り越えましたか？","課題→行動→結果の順で。数字が入ると説得力が跳ねます。"],
+ ["なぜ同業他社ではなく当社ですか？","企業研究の深さを測る質問。事業の独自性に触れて答えましょう。"]
+];
+function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
+function predict(){
+  const u=document.getElementById('url').value.trim();
+  if(!u){document.getElementById('url').focus();return}
+  document.getElementById('form').style.display='none';
+  document.getElementById('loading').style.display='block';
+  setTimeout(()=>{
+    document.getElementById('loading').style.display='none';
+    document.getElementById('result').style.display='block';
+    document.getElementById('rt').textContent="予測結果 — "+u.replace(/^https?:\/\//,'').slice(0,36);
+    const h=hash(u),cards=document.getElementById('cards');
+    for(let i=0;i<4;i++){
+      const q=QPOOL[(h+i*2)%QPOOL.length];
+      const p=94-i*5-(h%4);
+      cards.innerHTML+='<div class="qc'+(i>=2?' lock':'')+'"><div class="q">「'+q[0]+'」<em>'+q[1]+'</em></div><div class="prob"><b>'+p+'%</b><span>出題確率</span></div></div>';
+    }
+  },2200);
+}
+</script>
+</body>
+</html>
